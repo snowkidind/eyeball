@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>Ye Ole Hairy Eyeball</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width"/>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+    <script type="text/javascript" src="js/KRGameLoop.js"></script>
+    <script type="text/javascript">
+
+      var radius;
+      var baseOffset;
+      var dataPoints;
+      var spacing;
+      var animation;
+
+      var from = 'BTC';
+      var to = 'USDT';
+      var interval = 'minute';
+      var aggregate = 5;
+      var gdata;
+      var vseed;
+      var timeouts = [];
+
+      // caveat this was written in like ten seconds but I'll try to explain it...
+
+      // pull data from an api of your choosing...
+      function load() {
+
+        var xmlHttp = new XMLHttpRequest();
+        xmlHttp.onreadystatechange = function () {
+          if (xmlHttp.readyState === 4 && xmlHttp.status === 200)
+          // draw(xmlHttp.responseText);
+            wtf(xmlHttp.responseText);
+          init();
+        };
+
+        var theUrl = "https://min-api.cryptocompare.com/data/histo" + interval + "?fsym=" + from + "&tsym=" + to + "&limit=200&aggregate=" + aggregate;
+        xmlHttp.open("GET", theUrl, true); // true for asynchronous
+        xmlHttp.send(null);
+      }
+
+      // capture the data and get started
+      function wtf(dataRaw) {
+        var parsed = JSON.parse(dataRaw).Data;
+        parsed.reverse();
+        drawCanvas2(parsed);
+      }
+
+
+      function drawCanvas2(data) {
+
+        // set some defaults
+        gdata = data;
+        if (!baseOffset) baseOffset = -90;
+        if (!vseed) vseed = 2;
+        if (!radius) radius = 120;
+        if (!dataPoints) dataPoints = 120;
+        if (!spacing) spacing = 2;
+        if (!animation) animation = 50;
+
+        // build our canvas object
+        // https://stackoverflow.com/questions/32681610/drawing-point-on-circle
+        var c = document.getElementById("canvas2");
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "#ffe";
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+        // make a new array of differences
+        var previousClose = data[0].close;
+        var diffs = [];
+        var attitude = [];
+
+        // some maths for sng's
+        for (var i = 0; i < data.length; i++) {
+          var diff = data[i].close - previousClose;
+          diffs.push(diff);
+          if (data[i].close > previousClose) attitude.push(true);
+          else attitude.push(false);
+          previousClose = data[i].close;
+        }
+
+        var hhd = Max(diffs);
+        var lld = Min(diffs);
+        var volume = [];
+        for (var i = 0; i < data.length; i++) {
+          volume.push(data[i].volumefrom);
+        }
+        var hhv = Max(volume);
+        var llv = Min(volume);
+
+        ctx.strokeStyle = '#ff0000';
+        ctx.lineWidth = 1.5;
+        lastStroke = "";
+        x = animation; // refactor me lol
+
+        for (var i = dataPoints; i > 0; i--) {
+          var offset = scaleRange2(lld, hhd, radius, baseOffset - diffs[i]);
+          if (attitude[i]) {
+            ctx.strokeStyle = '#ee0000';
+          } else {
+            offset = offset * -1;
+            ctx.strokeStyle = '#00aa00';
+          }
+
+          var volumeLength = scaleRange2(llv, hhv, vseed, data[i].volumefrom);
+          var angle = i * spacing;
+          lastStroke = ctx.strokeStyle;
+
+          // doppler loop it
+          x = Number(x) + Number(animation);
+          var time = setTimeout(function (a, b, c, d) {
+              ctx.strokeStyle = d;
+              drawLine(a, ctx, b + 1, c);
+            },
+            x,
+            angle, volumeLength, offset, ctx.strokeStyle);
+          timeouts.push(time);
+        }
+
+        time = setTimeout(function () {
+          drawCanvas2(data);
+        }, dataPoints * Number(animation) + 500);
+
+        timeouts.push(time);
+        ctx.strokeStyle = '#000000';
+
+        drawCircle(ctx);
+        if (!lastStroke) lastStroke = "#ff00ff";
+
+        // triangle
+        var pointx = ctx.canvas.width / 2 + Number(radius);
+        var pointy = ctx.canvas.height / 2;
+        ctx.fillStyle = lastStroke;
+        ctx.beginPath();
+        ctx.moveTo(pointx, pointy);
+        ctx.lineTo(pointx - 10, pointy - 5);
+        ctx.lineTo(pointx - 10, pointy + 5);
+        ctx.fill();
+
+        // heading
+        ctx.fillStyle = "#000";
+        var comparison = 'Comparing Volume with Relative Gain';
+        ctx.font = "bold 18px sans-serif";
+        ctx.textAlign = 'end';
+        ctx.fillText(comparison, ctx.canvas.width - 10, ctx.canvas.height - 100);
+
+        var description = 'Longer Lines: Higher Volume, Forward Leaning, Positive Difference';
+        ctx.font = "bold 12px sans-serif";
+        ctx.textAlign = 'end';
+        ctx.fillText(description, ctx.canvas.width - 10, ctx.canvas.height - 85);
+
+        var label = from + '/' + to + " " + aggregate + interval;
+        ctx.font = "bold 12px sans-serif";
+        ctx.textAlign = 'end';
+        ctx.fillText(label, ctx.canvas.width - 10, ctx.canvas.height - 70);
+
+        var method = 'length: volume, offset: relative gain from previous candle';
+        ctx.font = "bold 12px sans-serif";
+        ctx.textAlign = 'end';
+        ctx.fillText(method, ctx.canvas.width - 10, ctx.canvas.height - 55);
+
+        var color = 'green: positive gain, red: negative gain';
+        ctx.font = "bold 12px sans-serif";
+        ctx.textAlign = 'end';
+        ctx.fillText(color, ctx.canvas.width - 10, ctx.canvas.height - 40);
+
+        var identity = 'Keny Ruyter 2018';
+        ctx.font = "bold 12px sans-serif";
+        ctx.textAlign = 'end';
+        ctx.fillText(identity, ctx.canvas.width - 10, ctx.canvas.height - 25);
+
+      }
+
+      function init() {
+
+        var slider = document.getElementById("myRange");
+        var output = document.getElementById("value");
+        output.innerHTML = slider.value; // Display the default slider value
+        // Update the current slider value (each time you drag the slider handle)
+        slider.oninput = function () {
+          for (var i = 0; i < timeouts.length; i++) {
+            clearTimeout(timeouts[i]);
+          }
+          baseOffset = this.value;
+          output.innerHTML = this.value;
+          timeouts = [];
+          drawCanvas2(gdata);
+        };
+
+        var vseedSlider = document.getElementById("vseed");
+        var vseedLabel = document.getElementById("vseedLabel");
+        vseedLabel.innerHTML = vseedSlider.value / 10;
+        vseedSlider.oninput = function () {
+          for (var i = 0; i < timeouts.length; i++) {
+            clearTimeout(timeouts[i]);
+          }
+          vseed = this.value / 10;
+          vseedLabel.innerHTML = this.value / 10;
+          timeouts = [];
+          drawCanvas2(gdata);
+        };
+
+        var radiusSlider = document.getElementById("radius");
+        var radiusLabel = document.getElementById("radiusLabel");
+        radiusLabel.innerHTML = radiusSlider.value;
+        radiusSlider.oninput = function () {
+          for (var i = 0; i < timeouts.length; i++) {
+            clearTimeout(timeouts[i]);
+          }
+          radius = this.value;
+          radiusLabel.innerHTML = this.value;
+          timeouts = [];
+          drawCanvas2(gdata);
+        };
+
+        var pointsSlider = document.getElementById("points");
+        var pointsLabel = document.getElementById("pointsLabel");
+        pointsLabel.innerHTML = pointsSlider.value;
+        pointsSlider.oninput = function () {
+          for (var i = 0; i < timeouts.length; i++) {
+            clearTimeout(timeouts[i]);
+          }
+          dataPoints = this.value;
+          pointsLabel.innerHTML = this.value;
+          timeouts = [];
+          drawCanvas2(gdata);
+        };
+
+        var spacingSlider = document.getElementById("spacing");
+        var spacingLabel = document.getElementById("spacingLabel");
+        spacingLabel.innerHTML = spacingSlider.value;
+        spacingSlider.oninput = function () {
+          for (var i = 0; i < timeouts.length; i++) {
+            clearTimeout(timeouts[i]);
+          }
+          spacing = this.value;
+          spacingLabel.innerHTML = this.value;
+          timeouts = [];
+          drawCanvas2(gdata);
+        };
+
+        var animationSlider = document.getElementById("animation");
+        var animationLabel = document.getElementById("animationLabel");
+        animationLabel.innerHTML = animationSlider.value;
+        animationSlider.oninput = function () {
+          for (var i = 0; i < timeouts.length; i++) {
+            clearTimeout(timeouts[i]);
+          }
+          animation = this.value;
+          animationLabel.innerHTML = this.value;
+          timeouts = [];
+          drawCanvas2(gdata);
+        }
+      }
+
+      function drawCircle(ctx) {
+        var center_x = ctx.canvas.width / 2;
+        var center_y = ctx.canvas.height / 2;
+        ctx.beginPath();
+        ctx.arc(center_x, center_y, radius, 0, 2 * Math.PI);
+        ctx.stroke();
+
+      }
+
+      function drawLine(angle, ctx, distance, offset) {
+        var center_x = ctx.canvas.width / 2;
+        var center_y = ctx.canvas.height / 2;
+        var x = center_x + radius * Math.cos(-angle * Math.PI / 180);
+        var y = center_y + radius * Math.sin(-angle * Math.PI / 180);
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+        var aOff = angle + offset;
+        var x2 = center_x + radius * Math.cos(-aOff * Math.PI / 180) * distance;
+        var y2 = center_y + radius * Math.sin(-aOff * Math.PI / 180) * distance;
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.strokeStyle = '#0000ff';
+      }
+
+      function scaleRange2(ll, hh, range, y) {
+        return range * (1 - (y - hh) / (ll - hh));
+      }
+
+      function Max(array) {
+        return Math.max.apply(Math, array);
+      }
+
+      function Min(array) {
+        return Math.min.apply(Math, array);
+      }
+
+
+    </script>
+
+</head>
+
+<body bgcolor="#FFFFFF" onLoad="load();">
+<br>
+<center>
+
+    <canvas id="canvas2" width="900" height="500"></canvas>
+    <br>
+
+    <div class="slideLabel">BaseOffset (-90)</div>
+    <div class="slidecontainer">
+        <input type="range" min="-200" max="200" value="-90" class="slider" id="myRange">
+    </div>
+    <div id="value" class="slideLabel"></div>
+
+    <br>
+
+    <div class="slideLabel">Volume Seed Length (2)</div>
+    <div class="slidecontainer">
+        <input type="range" min="-100" max="100" value="20" class="slider" id="vseed">
+    </div>
+    <div id="vseedLabel" class="slideLabel"></div>
+
+    <br>
+
+    <div class="slideLabel">Radius (120)</div>
+    <div class="slidecontainer">
+        <input type="range" min="1" max="240" value="120" class="slider" id="radius">
+    </div>
+    <div id="radiusLabel" class="slideLabel"></div>
+
+
+    <br>
+
+    <div class="slideLabel">Number of Points (120)</div>
+    <div class="slidecontainer">
+        <input type="range" min="1" max="200" value="120" class="slider" id="points">
+    </div>
+    <div id="pointsLabel" class="slideLabel"></div>
+
+
+    <br>
+
+    <div class="slideLabel">Linear Distribution (2)</div>
+    <div class="slidecontainer">
+        <input type="range" min="1" max="100" value="2" class="slider" id="spacing">
+    </div>
+    <div id="spacingLabel" class="slideLabel"></div>
+
+    <br>
+
+    <div class="slideLabel">Animation Speed (50)</div>
+    <div class="slidecontainer">
+        <input type="range" min="1" max="100" value="50" class="slider" id="animation">
+    </div>
+    <div id="animationLabel" class="slideLabel"></div>
+
+</body>
+</html>
