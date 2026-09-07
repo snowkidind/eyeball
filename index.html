@@ -14,7 +14,7 @@
       var dataPoints;
       var spacing;
       var animation;
-      var hairOffset = 0; // radial shift of the whole tuft: out/in on the circle, up/down on the line
+      var hairOffset = 31; // radial shift of the spike tips: out/in on the circle, up/down on the line
 
       var from = 'BTC';
       var to = 'USDT';
@@ -96,12 +96,12 @@
 
         // set some defaults
         gdata = data;
-        if (!baseOffset) baseOffset = -90;
-        if (!vseed) vseed = 2;
-        if (!radius) radius = 120;
-        if (!dataPoints) dataPoints = 120;
-        if (!spacing) spacing = 2;
-        if (!animation) animation = 50;
+        if (!baseOffset) baseOffset = 60;
+        if (!vseed) vseed = -0.9;
+        if (!radius) radius = 147;
+        if (!dataPoints) dataPoints = 200;
+        if (!spacing) spacing = 90;
+        if (!animation) animation = 19;
 
         // build our canvas object
         // https://stackoverflow.com/questions/32681610/drawing-point-on-circle
@@ -465,7 +465,7 @@
         <div class="row" title="Angular lean applied to every line, nudged per candle by its gain/loss. Low values sweep the lines across the circle as woven chords; high values tighten them into local starbursts at each anchor. It's an angle, so it wraps at 360 — expect the pattern to shift character, not just intensity.">
             <span class="name">Base Offset</span>
             <span class="end left">Woven</span>
-            <input type="range" min="-200" max="200" value="-90" class="slider" id="myRange">
+            <input type="range" min="-200" max="200" value="60" class="slider" id="myRange">
             <span class="end right">Starburst</span>
             <span class="val" id="value"></span>
         </div>
@@ -473,7 +473,7 @@
         <div class="row" title="Roots stay on the ring/baseline; this moves the spike tips to control which side the hair grows on — positive pushes them outside the ring (above the line), negative flips them inside (below the line).">
             <span class="name">Hair Offset</span>
             <span class="end left">Inside</span>
-            <input type="range" min="-240" max="240" value="0" class="slider" id="hair">
+            <input type="range" min="-240" max="240" value="31" class="slider" id="hair">
             <span class="end right">Outside</span>
             <span class="val" id="hairLabel"></span>
         </div>
@@ -481,7 +481,7 @@
         <div class="row" title="Scales each line's length by trading volume. Higher makes high-volume lines longer; negative flips lines inward.">
             <span class="name">Volume Seed Length</span>
             <span class="end left">Shorter</span>
-            <input type="range" min="-100" max="100" value="20" class="slider" id="vseed">
+            <input type="range" min="-100" max="100" value="-9" class="slider" id="vseed">
             <span class="end right">Longer</span>
             <span class="val" id="vseedLabel"></span>
         </div>
@@ -489,7 +489,7 @@
         <div class="row" title="Size of the base circle the lines radiate from.">
             <span class="name">Radius</span>
             <span class="end left">Smaller</span>
-            <input type="range" min="1" max="240" value="120" class="slider" id="radius">
+            <input type="range" min="1" max="240" value="147" class="slider" id="radius">
             <span class="end right">Bigger</span>
             <span class="val" id="radiusLabel"></span>
         </div>
@@ -497,7 +497,7 @@
         <div class="row" title="How many candles (lines) are drawn.">
             <span class="name">Number of Points</span>
             <span class="end left">Fewer</span>
-            <input type="range" min="1" max="200" value="120" class="slider" id="points">
+            <input type="range" min="1" max="200" value="200" class="slider" id="points">
             <span class="end right">More</span>
             <span class="val" id="pointsLabel"></span>
         </div>
@@ -505,7 +505,7 @@
         <div class="row" title="Degrees between each line. Whole divisors of 360 stack the points into clusters — 90&deg; gives 4, 72&deg; gives 5, 60&deg; gives 6, and so on.">
             <span class="name">Linear Distribution</span>
             <span class="end left">Tight fan</span>
-            <input type="range" min="1" max="180" value="2" class="slider" id="spacing">
+            <input type="range" min="1" max="180" value="90" class="slider" id="spacing">
             <span class="end right">Full circle</span>
             <span class="val" id="spacingLabel"></span>
         </div>
@@ -513,7 +513,7 @@
         <div class="row" title="Delay between drawing each line. Left is faster, right is slower.">
             <span class="name">Animation Speed</span>
             <span class="end left">Faster</span>
-            <input type="range" min="1" max="100" value="50" class="slider" id="animation">
+            <input type="range" min="1" max="100" value="19" class="slider" id="animation">
             <span class="end right">Slower</span>
             <span class="val" id="animationLabel"></span>
         </div>
