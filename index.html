@@ -26,26 +26,58 @@
       // caveat this was written in like ten seconds but I'll try to explain it...
 
       // pull data from an api of your choosing...
+      // Binance is keyless and CORS-enabled. api.binance.com works globally
+      // except in geoblocked regions (e.g. the US, HTTP 451), where api.binance.us
+      // serves the same format, so we try .com first and fall back to .us.
       function load() {
 
-        var xmlHttp = new XMLHttpRequest();
-        xmlHttp.onreadystatechange = function () {
-          if (xmlHttp.readyState !== 4) return;
-          if (xmlHttp.status === 200) {
-            wtf(xmlHttp.responseText);
-            init();
-          } else {
-            console.error("data load failed: HTTP " + xmlHttp.status, xmlHttp.responseText);
-          }
-        };
-
-        // Binance is keyless and CORS-enabled. interval maps to Binance's
-        // suffix (minute -> m, hour -> h, day -> d) combined with aggregate.
+        // interval maps to Binance's suffix (minute -> m, hour -> h, day -> d)
+        // combined with aggregate; symbol is the two currencies joined.
         var suffix = { minute: 'm', hour: 'h', day: 'd' }[interval] || 'm';
-        var symbol = from + to;
-        var theUrl = "https://api.binance.com/api/v3/klines?symbol=" + symbol + "&interval=" + aggregate + suffix + "&limit=200";
-        xmlHttp.open("GET", theUrl, true); // true for asynchronous
-        xmlHttp.send(null);
+        var query = "/api/v3/klines?symbol=" + from + to + "&interval=" + aggregate + suffix + "&limit=200";
+        var hosts = ["https://api.binance.com", "https://api.binance.us"];
+
+        function attempt(i) {
+          if (i >= hosts.length) {
+            drawMessage("Couldn't load market data.", "The data source may be unavailable or blocked in your region.");
+            return;
+          }
+          var xmlHttp = new XMLHttpRequest();
+          xmlHttp.onreadystatechange = function () {
+            if (xmlHttp.readyState !== 4) return;
+            if (xmlHttp.status === 200) {
+              wtf(xmlHttp.responseText);
+              init();
+            } else {
+              console.error("data load failed from " + hosts[i] + ": HTTP " + xmlHttp.status, xmlHttp.responseText);
+              attempt(i + 1);
+            }
+          };
+          xmlHttp.onerror = function () {
+            console.error("network error loading from " + hosts[i]);
+            attempt(i + 1);
+          };
+          xmlHttp.open("GET", hosts[i] + query, true); // true for asynchronous
+          xmlHttp.send(null);
+        }
+
+        attempt(0);
+      }
+
+      // draw a readable message on the canvas instead of leaving it blank
+      function drawMessage(title, detail) {
+        var c = document.getElementById("canvas2");
+        var ctx = c.getContext("2d");
+        ctx.fillStyle = "#ffe";
+        ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        ctx.fillStyle = "#000";
+        ctx.textAlign = "center";
+        ctx.font = "bold 20px sans-serif";
+        ctx.fillText(title, ctx.canvas.width / 2, ctx.canvas.height / 2 - 10);
+        if (detail) {
+          ctx.font = "14px sans-serif";
+          ctx.fillText(detail, ctx.canvas.width / 2, ctx.canvas.height / 2 + 16);
+        }
       }
 
       // capture the data and get started
