@@ -30,20 +30,30 @@
 
         var xmlHttp = new XMLHttpRequest();
         xmlHttp.onreadystatechange = function () {
-          if (xmlHttp.readyState === 4 && xmlHttp.status === 200)
-          // draw(xmlHttp.responseText);
+          if (xmlHttp.readyState !== 4) return;
+          if (xmlHttp.status === 200) {
             wtf(xmlHttp.responseText);
-          init();
+            init();
+          } else {
+            console.error("data load failed: HTTP " + xmlHttp.status, xmlHttp.responseText);
+          }
         };
 
-        var theUrl = "https://min-api.cryptocompare.com/data/histo" + interval + "?fsym=" + from + "&tsym=" + to + "&limit=200&aggregate=" + aggregate;
+        // Binance is keyless and CORS-enabled. interval maps to Binance's
+        // suffix (minute -> m, hour -> h, day -> d) combined with aggregate.
+        var suffix = { minute: 'm', hour: 'h', day: 'd' }[interval] || 'm';
+        var symbol = from + to;
+        var theUrl = "https://api.binance.com/api/v3/klines?symbol=" + symbol + "&interval=" + aggregate + suffix + "&limit=200";
         xmlHttp.open("GET", theUrl, true); // true for asynchronous
         xmlHttp.send(null);
       }
 
       // capture the data and get started
       function wtf(dataRaw) {
-        var parsed = JSON.parse(dataRaw).Data;
+        // Binance klines are arrays: [openTime, open, high, low, close, volume, ...]
+        var parsed = JSON.parse(dataRaw).map(function (k) {
+          return { close: Number(k[4]), volumefrom: Number(k[5]) };
+        });
         parsed.reverse();
         drawCanvas2(parsed);
       }
