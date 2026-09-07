@@ -448,18 +448,29 @@
       function drawLine(angle, ctx, distance, offset) {
         var center_x = ctx.canvas.width / 2;
         var center_y = ctx.canvas.height / 2;
-        // anchor stays ON the ring; hairOffset only moves the endpoint radially,
-        // so it controls which side of the circle the hair is drawn on
-        var anchorR = Number(radius);
-        var endR = Number(radius) * distance + Number(hairOffset);
-        var x = center_x + anchorR * Math.cos(-angle * Math.PI / 180);
-        var y = center_y + anchorR * Math.sin(-angle * Math.PI / 180);
+        var na = -angle * Math.PI / 180;           // radial (outward) normal
+
+        // root anchored on the ring
+        var ax = center_x + radius * Math.cos(na);
+        var ay = center_y + radius * Math.sin(na);
+
+        // direction: lean off the radial by the offset (same role as the line's
+        // vertical lean); length is driven by volume so volume = 0 -> no spike
+        var refR = Number(radius) * 2;
+        var aOff = -(angle + offset) * Math.PI / 180;
+        var dx = (center_x + refR * Math.cos(aOff)) - ax;
+        var dy = (center_y + refR * Math.sin(aOff)) - ay;
+        var natLen = Math.sqrt(dx * dx + dy * dy);
+        if (natLen < 0.0001) { dx = Math.cos(na); dy = Math.sin(na); natLen = 1; }
+
+        var L = Number(radius) * (distance - 1);   // distance = volumeLength + 1
+        var ho = Number(hairOffset);               // pushes the tip radially (which side)
+        var ex = ax + dx / natLen * L + ho * Math.cos(na);
+        var ey = ay + dy / natLen * L + ho * Math.sin(na);
+
         ctx.beginPath();
-        ctx.moveTo(x, y);
-        var aOff = angle + offset;
-        var x2 = center_x + endR * Math.cos(-aOff * Math.PI / 180);
-        var y2 = center_y + endR * Math.sin(-aOff * Math.PI / 180);
-        ctx.lineTo(x2, y2);
+        ctx.moveTo(ax, ay);
+        ctx.lineTo(ex, ey);
         ctx.stroke();
         ctx.strokeStyle = '#0000ff';
       }
