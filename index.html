@@ -217,6 +217,22 @@
 
       function init() {
 
+        // Sticky settings: restore each slider from localStorage before we
+        // read them below, and save on every change so they survive reloads.
+        var sliderIds = ["myRange", "vseed", "radius", "points", "spacing", "animation"];
+        for (var s = 0; s < sliderIds.length; s++) {
+          (function (id) {
+            var el = document.getElementById(id);
+            try {
+              var saved = localStorage.getItem("eyeball:" + id);
+              if (saved !== null) el.value = saved;
+            } catch (e) { /* localStorage unavailable; ignore */ }
+            el.addEventListener("input", function () {
+              try { localStorage.setItem("eyeball:" + id, this.value); } catch (e) {}
+            });
+          })(sliderIds[s]);
+        }
+
         // Make the sliders the source of truth. Browsers restore thumb
         // positions on reload, so seed every variable from its slider before
         // the first draw — otherwise the render would use the hardcoded
