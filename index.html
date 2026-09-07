@@ -97,7 +97,7 @@
         // set some defaults
         gdata = data;
         if (!baseOffset) baseOffset = 60;
-        if (!vseed) vseed = -0.9;
+        if (!vseed) vseed = 0.9;
         if (!radius) radius = 147;
         if (!dataPoints) dataPoints = 200;
         if (!spacing) spacing = 90;
@@ -511,10 +511,10 @@
             <span class="val" id="hairLabel"></span>
         </div>
 
-        <div class="row" data-desc="Scales each line's length by trading volume. Higher makes high-volume lines longer; negative flips lines inward.">
+        <div class="row" data-desc="Scales each line's length by trading volume: all the way down is near-zero length; higher makes the lines longer (high-volume candles most of all).">
             <span class="name">Volume Seed Length</span>
             <span class="end left">Shorter</span>
-            <input type="range" min="-100" max="100" value="-9" class="slider" id="vseed">
+            <input type="range" min="0" max="100" value="9" class="slider" id="vseed">
             <span class="end right">Longer</span>
             <span class="val" id="vseedLabel"></span>
         </div>
