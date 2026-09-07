@@ -1,20 +1,57 @@
 
-.slideLabel {
-    display:inline;
+body {
+    font-family: sans-serif;
 }
-.slidecontainer {
-    display: inline;
+
+/* Grid so every column lines up across all rows */
+.controls {
+    display: grid;
+    grid-template-columns: 12em 6em minmax(180px, 34em) 6em 3.5em;
+    align-items: center;
+    gap: 14px 12px;
+    max-width: 900px;
+    margin: 24px auto;
+}
+
+/* Each row hands its cells straight to the parent grid */
+.row {
+    display: contents;
+}
+
+.row .name {
+    text-align: right;
+    font-weight: bold;
+    cursor: help;
+}
+
+.row .end {
+    color: #666;
+    font-size: 13px;
+}
+.row .end.left {
+    text-align: right;
+}
+.row .end.right {
+    text-align: left;
+}
+
+.row .val {
+    font-variant-numeric: tabular-nums;
+    color: #333;
+    text-align: right;
+    font-weight: bold;
 }
 
 /* The slider itself */
 .slider {
     -webkit-appearance: none;  /* Override default CSS styles */
     appearance: none;
-    width: 20%; /* Full-width */
-    height: 25px; /* Specified height */
+    width: 100%; /* Fill its grid cell */
+    height: 10px;
+    border-radius: 5px;
     background: #d3d3d3; /* Grey background */
     outline: none; /* Remove outline */
-    opacity: 0.7; /* Set transparency (for mouse-over effects on hover) */
+    opacity: 0.75; /* Set transparency (for mouse-over effects on hover) */
     -webkit-transition: .2s; /* 0.2 seconds transition on hover */
     transition: opacity .2s;
 }
@@ -28,15 +65,18 @@
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none; /* Override default look */
     appearance: none;
-    width: 25px; /* Set a specific slider handle width */
-    height: 25px; /* Slider handle height */
+    width: 22px; /* Set a specific slider handle width */
+    height: 22px; /* Slider handle height */
+    border-radius: 50%;
     background: #4CAF50; /* Green background */
     cursor: pointer; /* Cursor on hover */
 }
 
 .slider::-moz-range-thumb {
-    width: 25px; /* Set a specific slider handle width */
-    height: 25px; /* Slider handle height */
+    width: 22px; /* Set a specific slider handle width */
+    height: 22px; /* Slider handle height */
+    border: none;
+    border-radius: 50%;
     background: #4CAF50; /* Green background */
     cursor: pointer; /* Cursor on hover */
 }

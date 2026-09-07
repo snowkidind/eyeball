@@ -343,55 +343,59 @@
 <center>
 
     <canvas id="canvas2" width="900" height="500"></canvas>
-    <br>
 
-    <div class="slideLabel">BaseOffset (-90)</div>
-    <div class="slidecontainer">
-        <input type="range" min="-200" max="200" value="-90" class="slider" id="myRange">
+    <div class="controls">
+
+        <div class="row" title="Angular lean added to every line. Negative points them inward toward the circle; positive swings them outward.">
+            <span class="name">Base Offset</span>
+            <span class="end left">Inside</span>
+            <input type="range" min="-200" max="200" value="-90" class="slider" id="myRange">
+            <span class="end right">Outside</span>
+            <span class="val" id="value"></span>
+        </div>
+
+        <div class="row" title="Scales each line's length by trading volume. Higher makes high-volume lines longer; negative flips lines inward.">
+            <span class="name">Volume Seed Length</span>
+            <span class="end left">Shorter</span>
+            <input type="range" min="-100" max="100" value="20" class="slider" id="vseed">
+            <span class="end right">Longer</span>
+            <span class="val" id="vseedLabel"></span>
+        </div>
+
+        <div class="row" title="Size of the base circle the lines radiate from.">
+            <span class="name">Radius</span>
+            <span class="end left">Smaller</span>
+            <input type="range" min="1" max="240" value="120" class="slider" id="radius">
+            <span class="end right">Bigger</span>
+            <span class="val" id="radiusLabel"></span>
+        </div>
+
+        <div class="row" title="How many candles (lines) are drawn.">
+            <span class="name">Number of Points</span>
+            <span class="end left">Fewer</span>
+            <input type="range" min="1" max="200" value="120" class="slider" id="points">
+            <span class="end right">More</span>
+            <span class="val" id="pointsLabel"></span>
+        </div>
+
+        <div class="row" title="Degrees of spacing between each line. Low values cluster them in a tight arc; high values spread them around the circle.">
+            <span class="name">Linear Distribution</span>
+            <span class="end left">Clustered</span>
+            <input type="range" min="1" max="100" value="2" class="slider" id="spacing">
+            <span class="end right">Spread</span>
+            <span class="val" id="spacingLabel"></span>
+        </div>
+
+        <div class="row" title="Delay between drawing each line. Left is faster, right is slower.">
+            <span class="name">Animation Speed</span>
+            <span class="end left">Faster</span>
+            <input type="range" min="1" max="100" value="50" class="slider" id="animation">
+            <span class="end right">Slower</span>
+            <span class="val" id="animationLabel"></span>
+        </div>
+
     </div>
-    <div id="value" class="slideLabel"></div>
 
-    <br>
-
-    <div class="slideLabel">Volume Seed Length (2)</div>
-    <div class="slidecontainer">
-        <input type="range" min="-100" max="100" value="20" class="slider" id="vseed">
-    </div>
-    <div id="vseedLabel" class="slideLabel"></div>
-
-    <br>
-
-    <div class="slideLabel">Radius (120)</div>
-    <div class="slidecontainer">
-        <input type="range" min="1" max="240" value="120" class="slider" id="radius">
-    </div>
-    <div id="radiusLabel" class="slideLabel"></div>
-
-
-    <br>
-
-    <div class="slideLabel">Number of Points (120)</div>
-    <div class="slidecontainer">
-        <input type="range" min="1" max="200" value="120" class="slider" id="points">
-    </div>
-    <div id="pointsLabel" class="slideLabel"></div>
-
-
-    <br>
-
-    <div class="slideLabel">Linear Distribution (2)</div>
-    <div class="slidecontainer">
-        <input type="range" min="1" max="100" value="2" class="slider" id="spacing">
-    </div>
-    <div id="spacingLabel" class="slideLabel"></div>
-
-    <br>
-
-    <div class="slideLabel">Animation Speed (50)</div>
-    <div class="slidecontainer">
-        <input type="range" min="1" max="100" value="50" class="slider" id="animation">
-    </div>
-    <div id="animationLabel" class="slideLabel"></div>
-
+</center>
 </body>
 </html>
