@@ -94,14 +94,10 @@
 
       function drawCanvas2(data) {
 
-        // set some defaults
+        // init() seeds every variable from its slider before the first draw,
+        // so no defaults here — a falsy guard would clobber legitimate zeros
+        // (e.g. Volume Seed Length = 0 should mean zero length).
         gdata = data;
-        if (!baseOffset) baseOffset = 60;
-        if (!vseed) vseed = 0.9;
-        if (!radius) radius = 147;
-        if (!dataPoints) dataPoints = 200;
-        if (!spacing) spacing = 90;
-        if (!animation) animation = 19;
 
         // build our canvas object
         // https://stackoverflow.com/questions/32681610/drawing-point-on-circle
