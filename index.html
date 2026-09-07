@@ -213,6 +213,89 @@
         ctx.textAlign = 'end';
         ctx.fillText(identity, ctx.canvas.width - 10, ctx.canvas.height - 25);
 
+        // the same data, unrolled: x = phase (angle mod 360)
+        drawLinear(data);
+      }
+
+      // Phase-folded companion: the circle unrolled onto a 0-360 x-axis.
+      // Same offset/volume math as drawCanvas2, so a spike here is the exact
+      // same spike, just plotted at its phase instead of around the circle.
+      // With spacing = 90 the points fold into 4 vertical columns.
+      function drawLinear(data) {
+        var c = document.getElementById("canvas3");
+        if (!c) return;
+        var ctx = c.getContext("2d");
+        var W = ctx.canvas.width, H = ctx.canvas.height;
+        ctx.fillStyle = "#ffe";
+        ctx.fillRect(0, 0, W, H);
+
+        // recompute the same metrics the circle uses
+        var previousClose = data[0].close;
+        var diffs = [], attitude = [], volume = [];
+        for (var i = 0; i < data.length; i++) {
+          diffs.push(data[i].close - previousClose);
+          attitude.push(data[i].close > previousClose);
+          volume.push(data[i].volumefrom);
+          previousClose = data[i].close;
+        }
+        var hhd = Max(diffs), lld = Min(diffs);
+        var hhv = Max(volume), llv = Min(volume);
+
+        var margin = 40;
+        var plotW = W - margin * 2;
+        var baseline = H / 2;
+
+        // phase gridlines at each multiple of spacing across one period
+        ctx.strokeStyle = "#e0e0d8";
+        ctx.lineWidth = 1;
+        for (var deg = 0; deg <= 360; deg += Number(spacing)) {
+          var gx = margin + (deg / 360) * plotW;
+          ctx.beginPath();
+          ctx.moveTo(gx, 24);
+          ctx.lineTo(gx, H - 20);
+          ctx.stroke();
+        }
+        // baseline the spikes grow from
+        ctx.strokeStyle = "#bbb";
+        ctx.beginPath();
+        ctx.moveTo(margin, baseline);
+        ctx.lineTo(W - margin, baseline);
+        ctx.stroke();
+
+        ctx.lineWidth = 1.5;
+        for (var i = dataPoints; i > 0; i--) {
+          var offset = scaleRange2(lld, hhd, radius, baseOffset - diffs[i]);
+          if (attitude[i]) {
+            ctx.strokeStyle = '#ee0000';
+          } else {
+            offset = offset * -1;
+            ctx.strokeStyle = '#00aa00';
+          }
+          var volumeLength = scaleRange2(llv, hhv, vseed, data[i].volumefrom);
+
+          // phase = angle folded into one 0-360 period
+          var phase = (i * Number(spacing)) % 360;
+          if (phase < 0) phase += 360;
+          var x = margin + (phase / 360) * plotW;
+
+          // spike leans off vertical by offset degrees (the local "normal"),
+          // length scales with volume x radius — same roles as the circle
+          var len = Number(radius) * volumeLength;
+          var rad = offset * Math.PI / 180;
+          ctx.beginPath();
+          ctx.moveTo(x, baseline);
+          ctx.lineTo(x + len * Math.sin(rad), baseline - len * Math.cos(rad));
+          ctx.stroke();
+        }
+
+        // axis labels
+        ctx.fillStyle = "#000";
+        ctx.font = "bold 12px sans-serif";
+        ctx.textAlign = "left";
+        ctx.fillText("Phase-folded (circle unrolled) — x = angle mod 360°", margin, 16);
+        ctx.textAlign = "center";
+        ctx.fillText("0°", margin, H - 4);
+        ctx.fillText("360°", W - margin, H - 4);
       }
 
       function init() {
@@ -377,6 +460,8 @@
 <center>
 
     <canvas id="canvas2" width="900" height="500"></canvas>
+    <br>
+    <canvas id="canvas3" width="900" height="360"></canvas>
 
     <div class="controls">
 
