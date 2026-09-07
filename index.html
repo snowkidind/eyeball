@@ -14,8 +14,8 @@
       var dataPoints;
       var spacing;
       var animation;
-      var hairOffset = 31; // radial shift of the spike tips: out/in on the circle, up/down on the line
-      var volGamma = 1;    // power curve on normalized volume: <1 flattens outliers, >1 exaggerates
+      var hairOffset = 12; // radial shift of the spike tips: out/in on the circle, up/down on the line
+      var volGamma = 1.49; // power curve on normalized volume: <1 flattens outliers, >1 exaggerates
 
       var from = 'BTC';
       var to = 'USDT';
@@ -522,7 +522,7 @@
         <div class="row" data-desc="Rotates the lean of every hair together, tilting the whole tuft back or forward. Each candle's own gain/loss nudges its lean around this baseline.">
             <span class="name">Lean</span>
             <span class="end left">Back</span>
-            <input type="range" min="-200" max="200" value="60" class="slider" id="myRange">
+            <input type="range" min="-200" max="200" value="-125" class="slider" id="myRange">
             <span class="end right">Forward</span>
             <span class="val" id="value"></span>
         </div>
@@ -530,7 +530,7 @@
         <div class="row" data-desc="Roots stay on the ring/baseline; this moves the spike tips to control which side the hair grows on — positive pushes them outside the ring (above the line), negative flips them inside (below the line).">
             <span class="name">Hair Offset</span>
             <span class="end left">Inside</span>
-            <input type="range" min="-240" max="240" value="31" class="slider" id="hair">
+            <input type="range" min="-240" max="240" value="12" class="slider" id="hair">
             <span class="end right">Outside</span>
             <span class="val" id="hairLabel"></span>
         </div>
@@ -538,7 +538,7 @@
         <div class="row" data-desc="Scales each line's length by trading volume: all the way down is near-zero length; higher makes the lines longer (high-volume candles most of all).">
             <span class="name">Volume Seed Length</span>
             <span class="end left">Shorter</span>
-            <input type="range" min="0" max="100" value="9" class="slider" id="vseed">
+            <input type="range" min="0" max="100" value="33" class="slider" id="vseed">
             <span class="end right">Longer</span>
             <span class="val" id="vseedLabel"></span>
         </div>
@@ -546,7 +546,7 @@
         <div class="row" data-desc="Weights how volume maps to length. Below 1 flattens the spread so outlier candles don't dwarf the norm; 1 is straight linear; above 1 exaggerates the big-volume spikes.">
             <span class="name">Normalization</span>
             <span class="end left">Flatten</span>
-            <input type="range" min="10" max="300" value="100" class="slider" id="volnorm">
+            <input type="range" min="10" max="300" value="149" class="slider" id="volnorm">
             <span class="end right">Exaggerate</span>
             <span class="val" id="volnormLabel"></span>
         </div>
@@ -554,7 +554,7 @@
         <div class="row" data-desc="Size of the base circle the lines radiate from.">
             <span class="name">Radius</span>
             <span class="end left">Smaller</span>
-            <input type="range" min="1" max="240" value="147" class="slider" id="radius">
+            <input type="range" min="1" max="240" value="109" class="slider" id="radius">
             <span class="end right">Bigger</span>
             <span class="val" id="radiusLabel"></span>
         </div>
@@ -578,7 +578,7 @@
         <div class="row" data-desc="Delay between drawing each line. Left is faster, right is slower.">
             <span class="name">Animation Speed</span>
             <span class="end left">Faster</span>
-            <input type="range" min="1" max="100" value="19" class="slider" id="animation">
+            <input type="range" min="1" max="100" value="9" class="slider" id="animation">
             <span class="end right">Slower</span>
             <span class="val" id="animationLabel"></span>
         </div>
