@@ -14,6 +14,7 @@
       var dataPoints;
       var spacing;
       var animation;
+      var hairOffset = 0; // radial shift of the whole tuft: out/in on the circle, up/down on the line
 
       var from = 'BTC';
       var to = 'USDT';
@@ -173,15 +174,16 @@
           if (phase < 0) phase += 360;
           var lx = lmargin + (phase / 360) * lplotW;
           var llen = Number(radius) * volumeLength;
-          var ltime = setTimeout(function (px, ln, off, col) {
+          var by = lbaseline - Number(hairOffset); // positive pushes above the line
+          var ltime = setTimeout(function (px, ln, off, col, baseY) {
               lctx.strokeStyle = col;
               lctx.beginPath();
-              lctx.moveTo(px, lbaseline);
-              lctx.lineTo(px + ln * Math.sin(off * Math.PI / 180), lbaseline - ln * Math.cos(off * Math.PI / 180));
+              lctx.moveTo(px, baseY);
+              lctx.lineTo(px + ln * Math.sin(off * Math.PI / 180), baseY - ln * Math.cos(off * Math.PI / 180));
               lctx.stroke();
             },
             x,
-            lx, llen, offset, ctx.strokeStyle);
+            lx, llen, offset, ctx.strokeStyle, by);
           timeouts.push(ltime);
         }
 
@@ -279,7 +281,7 @@
 
         // Sticky settings: restore each slider from localStorage before we
         // read them below, and save on every change so they survive reloads.
-        var sliderIds = ["myRange", "vseed", "radius", "points", "spacing", "animation"];
+        var sliderIds = ["myRange", "hair", "vseed", "radius", "points", "spacing", "animation"];
         for (var s = 0; s < sliderIds.length; s++) {
           (function (id) {
             var el = document.getElementById(id);
@@ -298,6 +300,7 @@
         // the first draw — otherwise the render would use the hardcoded
         // defaults and disagree with where the thumbs actually sit.
         baseOffset = Number(document.getElementById("myRange").value);
+        hairOffset = Number(document.getElementById("hair").value);
         vseed = Number(document.getElementById("vseed").value) / 10;
         radius = Number(document.getElementById("radius").value);
         dataPoints = Number(document.getElementById("points").value);
@@ -314,6 +317,19 @@
           }
           baseOffset = this.value;
           output.innerHTML = this.value;
+          timeouts = [];
+          drawCanvas2(gdata);
+        };
+
+        var hairSlider = document.getElementById("hair");
+        var hairLabel = document.getElementById("hairLabel");
+        hairLabel.innerHTML = hairSlider.value;
+        hairSlider.oninput = function () {
+          for (var i = 0; i < timeouts.length; i++) {
+            clearTimeout(timeouts[i]);
+          }
+          hairOffset = this.value;
+          hairLabel.innerHTML = this.value;
           timeouts = [];
           drawCanvas2(gdata);
         };
@@ -403,13 +419,17 @@
       function drawLine(angle, ctx, distance, offset) {
         var center_x = ctx.canvas.width / 2;
         var center_y = ctx.canvas.height / 2;
-        var x = center_x + radius * Math.cos(-angle * Math.PI / 180);
-        var y = center_y + radius * Math.sin(-angle * Math.PI / 180);
+        // hairOffset pushes the whole spike radially: anchor and endpoint both
+        // shift by the same amount, so the tuft slides outside/inside the ring
+        var anchorR = Number(radius) + Number(hairOffset);
+        var endR = Number(radius) * distance + Number(hairOffset);
+        var x = center_x + anchorR * Math.cos(-angle * Math.PI / 180);
+        var y = center_y + anchorR * Math.sin(-angle * Math.PI / 180);
         ctx.beginPath();
         ctx.moveTo(x, y);
         var aOff = angle + offset;
-        var x2 = center_x + radius * Math.cos(-aOff * Math.PI / 180) * distance;
-        var y2 = center_y + radius * Math.sin(-aOff * Math.PI / 180) * distance;
+        var x2 = center_x + endR * Math.cos(-aOff * Math.PI / 180);
+        var y2 = center_y + endR * Math.sin(-aOff * Math.PI / 180);
         ctx.lineTo(x2, y2);
         ctx.stroke();
         ctx.strokeStyle = '#0000ff';
@@ -448,6 +468,14 @@
             <input type="range" min="-200" max="200" value="-90" class="slider" id="myRange">
             <span class="end right">Starburst</span>
             <span class="val" id="value"></span>
+        </div>
+
+        <div class="row" title="Pushes the whole tuft radially without resizing the circle: positive slides every spike outside the ring (and above the baseline on the line), negative sinks them inside (below the line).">
+            <span class="name">Hair Offset</span>
+            <span class="end left">Inside</span>
+            <input type="range" min="-240" max="240" value="0" class="slider" id="hair">
+            <span class="end right">Outside</span>
+            <span class="val" id="hairLabel"></span>
         </div>
 
         <div class="row" title="Scales each line's length by trading volume. Higher makes high-volume lines longer; negative flips lines inward.">
