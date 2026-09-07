@@ -109,6 +109,14 @@
         ctx.fillStyle = "#ffe";
         ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
 
+        // companion phase-folded canvas: draw its static frame now, then let
+        // each spike build up in sync with the circle via the same timeouts
+        var lctx = document.getElementById("canvas3").getContext("2d");
+        var lmargin = 40;
+        var lplotW = lctx.canvas.width - lmargin * 2;
+        var lbaseline = lctx.canvas.height / 2;
+        drawLinearFrame(lctx, lmargin, lplotW, lbaseline);
+
         // make a new array of differences
         var previousClose = data[0].close;
         var diffs = [];
@@ -159,6 +167,22 @@
             x,
             angle, volumeLength, offset, ctx.strokeStyle);
           timeouts.push(time);
+
+          // same spike, folded onto the 0-360 x-axis, drawn at the same tick
+          var phase = (i * Number(spacing)) % 360;
+          if (phase < 0) phase += 360;
+          var lx = lmargin + (phase / 360) * lplotW;
+          var llen = Number(radius) * volumeLength;
+          var ltime = setTimeout(function (px, ln, off, col) {
+              lctx.strokeStyle = col;
+              lctx.beginPath();
+              lctx.moveTo(px, lbaseline);
+              lctx.lineTo(px + ln * Math.sin(off * Math.PI / 180), lbaseline - ln * Math.cos(off * Math.PI / 180));
+              lctx.stroke();
+            },
+            x,
+            lx, llen, offset, ctx.strokeStyle);
+          timeouts.push(ltime);
         }
 
         time = setTimeout(function () {
@@ -212,40 +236,18 @@
         ctx.font = "bold 12px sans-serif";
         ctx.textAlign = 'end';
         ctx.fillText(identity, ctx.canvas.width - 10, ctx.canvas.height - 25);
-
-        // the same data, unrolled: x = phase (angle mod 360)
-        drawLinear(data);
       }
 
-      // Phase-folded companion: the circle unrolled onto a 0-360 x-axis.
-      // Same offset/volume math as drawCanvas2, so a spike here is the exact
-      // same spike, just plotted at its phase instead of around the circle.
-      // With spacing = 90 the points fold into 4 vertical columns.
-      function drawLinear(data) {
-        var c = document.getElementById("canvas3");
-        if (!c) return;
-        var ctx = c.getContext("2d");
+      // Static frame for the phase-folded companion: background, phase
+      // gridlines at each multiple of spacing, baseline, and axis labels.
+      // The spikes themselves are drawn over time by drawCanvas2's timeouts,
+      // so the line builds up cumulatively in sync with the circle.
+      function drawLinearFrame(ctx, margin, plotW, baseline) {
         var W = ctx.canvas.width, H = ctx.canvas.height;
         ctx.fillStyle = "#ffe";
         ctx.fillRect(0, 0, W, H);
 
-        // recompute the same metrics the circle uses
-        var previousClose = data[0].close;
-        var diffs = [], attitude = [], volume = [];
-        for (var i = 0; i < data.length; i++) {
-          diffs.push(data[i].close - previousClose);
-          attitude.push(data[i].close > previousClose);
-          volume.push(data[i].volumefrom);
-          previousClose = data[i].close;
-        }
-        var hhd = Max(diffs), lld = Min(diffs);
-        var hhv = Max(volume), llv = Min(volume);
-
-        var margin = 40;
-        var plotW = W - margin * 2;
-        var baseline = H / 2;
-
-        // phase gridlines at each multiple of spacing across one period
+        // phase gridlines across one 0-360 period
         ctx.strokeStyle = "#e0e0d8";
         ctx.lineWidth = 1;
         for (var deg = 0; deg <= 360; deg += Number(spacing)) {
@@ -261,32 +263,7 @@
         ctx.moveTo(margin, baseline);
         ctx.lineTo(W - margin, baseline);
         ctx.stroke();
-
         ctx.lineWidth = 1.5;
-        for (var i = Math.min(dataPoints, data.length - 1); i > 0; i--) {
-          var offset = scaleRange2(lld, hhd, radius, baseOffset - diffs[i]);
-          if (attitude[i]) {
-            ctx.strokeStyle = '#ee0000';
-          } else {
-            offset = offset * -1;
-            ctx.strokeStyle = '#00aa00';
-          }
-          var volumeLength = scaleRange2(llv, hhv, vseed, data[i].volumefrom);
-
-          // phase = angle folded into one 0-360 period
-          var phase = (i * Number(spacing)) % 360;
-          if (phase < 0) phase += 360;
-          var x = margin + (phase / 360) * plotW;
-
-          // spike leans off vertical by offset degrees (the local "normal"),
-          // length scales with volume x radius — same roles as the circle
-          var len = Number(radius) * volumeLength;
-          var rad = offset * Math.PI / 180;
-          ctx.beginPath();
-          ctx.moveTo(x, baseline);
-          ctx.lineTo(x + len * Math.sin(rad), baseline - len * Math.cos(rad));
-          ctx.stroke();
-        }
 
         // axis labels
         ctx.fillStyle = "#000";
