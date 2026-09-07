@@ -15,6 +15,7 @@
       var spacing;
       var animation;
       var hairOffset = 31; // radial shift of the spike tips: out/in on the circle, up/down on the line
+      var volGamma = 1;    // power curve on normalized volume: <1 flattens outliers, >1 exaggerates
 
       var from = 'BTC';
       var to = 'USDT';
@@ -151,7 +152,9 @@
             ctx.strokeStyle = '#00aa00';
           }
 
-          var volumeLength = scaleRange2(llv, hhv, vseed, data[i].volumefrom);
+          // normalized volume 0..1, shaped by volGamma to tame outliers
+          var vfactor = (hhv === llv) ? 1 : (data[i].volumefrom - llv) / (hhv - llv);
+          var volumeLength = vseed * Math.pow(vfactor, volGamma);
           var angle = i * spacing;
           lastStroke = ctx.strokeStyle;
 
@@ -277,7 +280,7 @@
 
         // Sticky settings: restore each slider from localStorage before we
         // read them below, and save on every change so they survive reloads.
-        var sliderIds = ["myRange", "hair", "vseed", "radius", "points", "spacing", "animation"];
+        var sliderIds = ["myRange", "hair", "vseed", "volnorm", "radius", "points", "spacing", "animation"];
         for (var s = 0; s < sliderIds.length; s++) {
           (function (id) {
             var el = document.getElementById(id);
@@ -331,6 +334,7 @@
         baseOffset = Number(document.getElementById("myRange").value);
         hairOffset = Number(document.getElementById("hair").value);
         vseed = Number(document.getElementById("vseed").value) / 10;
+        volGamma = Number(document.getElementById("volnorm").value) / 100;
         radius = Number(document.getElementById("radius").value);
         dataPoints = Number(document.getElementById("points").value);
         spacing = Number(document.getElementById("spacing").value);
@@ -372,6 +376,19 @@
           }
           vseed = this.value / 10;
           vseedLabel.innerHTML = this.value / 10;
+          timeouts = [];
+          drawCanvas2(gdata);
+        };
+
+        var volnormSlider = document.getElementById("volnorm");
+        var volnormLabel = document.getElementById("volnormLabel");
+        volnormLabel.innerHTML = (volnormSlider.value / 100).toFixed(2);
+        volnormSlider.oninput = function () {
+          for (var i = 0; i < timeouts.length; i++) {
+            clearTimeout(timeouts[i]);
+          }
+          volGamma = this.value / 100;
+          volnormLabel.innerHTML = (this.value / 100).toFixed(2);
           timeouts = [];
           drawCanvas2(gdata);
         };
@@ -524,6 +541,14 @@
             <input type="range" min="0" max="100" value="9" class="slider" id="vseed">
             <span class="end right">Longer</span>
             <span class="val" id="vseedLabel"></span>
+        </div>
+
+        <div class="row" data-desc="Weights how volume maps to length. Below 1 flattens the spread so outlier candles don't dwarf the norm; 1 is straight linear; above 1 exaggerates the big-volume spikes.">
+            <span class="name">Normalization</span>
+            <span class="end left">Flatten</span>
+            <input type="range" min="10" max="300" value="100" class="slider" id="volnorm">
+            <span class="end right">Exaggerate</span>
+            <span class="val" id="volnormLabel"></span>
         </div>
 
         <div class="row" data-desc="Size of the base circle the lines radiate from.">
