@@ -42,6 +42,40 @@ body {
     font-weight: bold;
 }
 
+/* Description panel: shows the hovered control's explanation */
+.desc {
+    max-width: 760px;
+    margin: 8px auto 20px;
+    min-height: 3.2em;
+    padding: 14px 18px;
+    background: #f4f4ee;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 17px;
+    line-height: 1.5;
+    color: #222;
+    text-align: left;
+}
+.desc .desc-title {
+    font-weight: bold;
+    margin-right: 6px;
+}
+
+.resetBtn {
+    margin: 0 auto 32px;
+    padding: 8px 18px;
+    font-size: 14px;
+    font-weight: bold;
+    color: #333;
+    background: #eee;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    cursor: pointer;
+}
+.resetBtn:hover {
+    background: #e0e0e0;
+}
+
 /* The slider itself */
 .slider {
     -webkit-appearance: none;  /* Override default CSS styles */

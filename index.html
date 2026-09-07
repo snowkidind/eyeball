@@ -295,6 +295,39 @@
           })(sliderIds[s]);
         }
 
+        // Hover-description panel: show the hovered control's explanation
+        // (pulled from its data-desc) in a big, readable area below the sliders.
+        var descBox = document.getElementById("desc");
+        var descDefault = "Hover a control to see what it does.";
+        var rows = document.querySelectorAll(".controls .row");
+        for (var r = 0; r < rows.length; r++) {
+          (function (row) {
+            var nameEl = row.querySelector(".name");
+            var name = nameEl ? nameEl.textContent : "";
+            var text = row.getAttribute("data-desc") || "";
+            row.addEventListener("mouseenter", function () {
+              descBox.innerHTML = '<span class="desc-title">' + name + ':</span>' + text;
+            });
+            row.addEventListener("mouseleave", function () {
+              descBox.innerHTML = descDefault;
+            });
+          })(rows[r]);
+        }
+
+        // Reset to defaults: clear saved settings and reload so the HTML
+        // default slider values take over again.
+        var resetBtn = document.getElementById("resetBtn");
+        if (resetBtn) {
+          resetBtn.addEventListener("click", function () {
+            try {
+              for (var k = 0; k < sliderIds.length; k++) {
+                localStorage.removeItem("eyeball:" + sliderIds[k]);
+              }
+            } catch (e) { /* ignore */ }
+            location.reload();
+          });
+        }
+
         // Make the sliders the source of truth. Browsers restore thumb
         // positions on reload, so seed every variable from its slider before
         // the first draw — otherwise the render would use the hardcoded
@@ -462,7 +495,7 @@
 
     <div class="controls">
 
-        <div class="row" title="Angular lean applied to every line, nudged per candle by its gain/loss. Low values sweep the lines across the circle as woven chords; high values tighten them into local starbursts at each anchor. It's an angle, so it wraps at 360 — expect the pattern to shift character, not just intensity.">
+        <div class="row" data-desc="Angular lean applied to every line, nudged per candle by its gain/loss. Low values sweep the lines across the circle as woven chords; high values tighten them into local starbursts at each anchor. It's an angle, so it wraps at 360 — expect the pattern to shift character, not just intensity.">
             <span class="name">Base Offset</span>
             <span class="end left">Woven</span>
             <input type="range" min="-200" max="200" value="60" class="slider" id="myRange">
@@ -470,7 +503,7 @@
             <span class="val" id="value"></span>
         </div>
 
-        <div class="row" title="Roots stay on the ring/baseline; this moves the spike tips to control which side the hair grows on — positive pushes them outside the ring (above the line), negative flips them inside (below the line).">
+        <div class="row" data-desc="Roots stay on the ring/baseline; this moves the spike tips to control which side the hair grows on — positive pushes them outside the ring (above the line), negative flips them inside (below the line).">
             <span class="name">Hair Offset</span>
             <span class="end left">Inside</span>
             <input type="range" min="-240" max="240" value="31" class="slider" id="hair">
@@ -478,7 +511,7 @@
             <span class="val" id="hairLabel"></span>
         </div>
 
-        <div class="row" title="Scales each line's length by trading volume. Higher makes high-volume lines longer; negative flips lines inward.">
+        <div class="row" data-desc="Scales each line's length by trading volume. Higher makes high-volume lines longer; negative flips lines inward.">
             <span class="name">Volume Seed Length</span>
             <span class="end left">Shorter</span>
             <input type="range" min="-100" max="100" value="-9" class="slider" id="vseed">
@@ -486,7 +519,7 @@
             <span class="val" id="vseedLabel"></span>
         </div>
 
-        <div class="row" title="Size of the base circle the lines radiate from.">
+        <div class="row" data-desc="Size of the base circle the lines radiate from.">
             <span class="name">Radius</span>
             <span class="end left">Smaller</span>
             <input type="range" min="1" max="240" value="147" class="slider" id="radius">
@@ -494,7 +527,7 @@
             <span class="val" id="radiusLabel"></span>
         </div>
 
-        <div class="row" title="How many candles (lines) are drawn.">
+        <div class="row" data-desc="How many candles (lines) are drawn.">
             <span class="name">Number of Points</span>
             <span class="end left">Fewer</span>
             <input type="range" min="1" max="200" value="200" class="slider" id="points">
@@ -502,7 +535,7 @@
             <span class="val" id="pointsLabel"></span>
         </div>
 
-        <div class="row" title="Degrees between each line. Whole divisors of 360 stack the points into clusters — 90&deg; gives 4, 72&deg; gives 5, 60&deg; gives 6, and so on.">
+        <div class="row" data-desc="Degrees between each line. Whole divisors of 360 stack the points into clusters — 90&deg; gives 4, 72&deg; gives 5, 60&deg; gives 6, and so on.">
             <span class="name">Linear Distribution</span>
             <span class="end left">Tight fan</span>
             <input type="range" min="1" max="180" value="90" class="slider" id="spacing">
@@ -510,7 +543,7 @@
             <span class="val" id="spacingLabel"></span>
         </div>
 
-        <div class="row" title="Delay between drawing each line. Left is faster, right is slower.">
+        <div class="row" data-desc="Delay between drawing each line. Left is faster, right is slower.">
             <span class="name">Animation Speed</span>
             <span class="end left">Faster</span>
             <input type="range" min="1" max="100" value="19" class="slider" id="animation">
@@ -519,6 +552,10 @@
         </div>
 
     </div>
+
+    <div id="desc" class="desc">Hover a control to see what it does.</div>
+
+    <button type="button" id="resetBtn" class="resetBtn">Reset to defaults</button>
 
 </center>
 </body>
