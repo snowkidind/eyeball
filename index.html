@@ -272,13 +272,13 @@
 
         var spacingSlider = document.getElementById("spacing");
         var spacingLabel = document.getElementById("spacingLabel");
-        spacingLabel.innerHTML = spacingSlider.value;
+        spacingLabel.innerHTML = spacingSlider.value + "&deg;";
         spacingSlider.oninput = function () {
           for (var i = 0; i < timeouts.length; i++) {
             clearTimeout(timeouts[i]);
           }
           spacing = this.value;
-          spacingLabel.innerHTML = this.value;
+          spacingLabel.innerHTML = this.value + "&deg;";
           timeouts = [];
           drawCanvas2(gdata);
         };
@@ -378,11 +378,11 @@
             <span class="val" id="pointsLabel"></span>
         </div>
 
-        <div class="row" title="Degrees of spacing between each line. Low values cluster them in a tight arc; high values spread them around the circle.">
+        <div class="row" title="Degrees between each line. Whole divisors of 360 stack the points into clusters — 90&deg; gives 4, 72&deg; gives 5, 60&deg; gives 6, and so on.">
             <span class="name">Linear Distribution</span>
-            <span class="end left">Clustered</span>
-            <input type="range" min="1" max="100" value="2" class="slider" id="spacing">
-            <span class="end right">Spread</span>
+            <span class="end left">Tight fan</span>
+            <input type="range" min="1" max="180" value="2" class="slider" id="spacing">
+            <span class="end right">Full circle</span>
             <span class="val" id="spacingLabel"></span>
         </div>
 
