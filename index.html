@@ -87,7 +87,7 @@
           return { close: Number(k[4]), volumefrom: Number(k[5]) };
         });
         parsed.reverse();
-        drawCanvas2(parsed);
+        gdata = parsed;
       }
 
 
@@ -217,6 +217,17 @@
 
       function init() {
 
+        // Make the sliders the source of truth. Browsers restore thumb
+        // positions on reload, so seed every variable from its slider before
+        // the first draw — otherwise the render would use the hardcoded
+        // defaults and disagree with where the thumbs actually sit.
+        baseOffset = Number(document.getElementById("myRange").value);
+        vseed = Number(document.getElementById("vseed").value) / 10;
+        radius = Number(document.getElementById("radius").value);
+        dataPoints = Number(document.getElementById("points").value);
+        spacing = Number(document.getElementById("spacing").value);
+        animation = Number(document.getElementById("animation").value);
+
         var slider = document.getElementById("myRange");
         var output = document.getElementById("value");
         output.innerHTML = slider.value; // Display the default slider value
@@ -295,6 +306,13 @@
           timeouts = [];
           drawCanvas2(gdata);
         }
+
+        // first draw now that the variables match the sliders
+        for (var i = 0; i < timeouts.length; i++) {
+          clearTimeout(timeouts[i]);
+        }
+        timeouts = [];
+        drawCanvas2(gdata);
       }
 
       function drawCircle(ctx) {
